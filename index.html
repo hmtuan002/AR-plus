@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR.js - Mặt Phẳng Xanh</title>
+    <title>AR.js - Mặt Phẳng Xanh Nhạt</title>
     <style>
         body {
             margin: 0;
@@ -54,11 +54,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>AR.js - Mặt Phẳng Xanh</h1>
+        <h1>AR.js - Mặt Phẳng Xanh Nhạt Trong Suốt</h1>
     </div>
     
     <div class="instructions">
-        Hướng camera vào marker Hiro để xem mặt phẳng màu xanh
+        Hướng camera vào marker Hiro để xem mặt phẳng xanh nhạt trong suốt
         <br>
         <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank" style="color: #4da6ff;">Tải marker Hiro tại đây</a>
     </div>
@@ -193,27 +193,29 @@
         });
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		Tạo mặt phẳng màu xanh
+        //		Tạo mặt phẳng xanh nhạt trong suốt
         //////////////////////////////////////////////////////////////////////////////////
 
         var arWorldRoot = smoothedRoot;
 
-        // Tạo mặt phẳng (thay vì hình lập phương)
-        var geometry = new THREE.PlaneGeometry(1, 1); // Kích thước 1x1
+        // Tạo mặt phẳng lớn hơn để phủ toàn bộ bề mặt
+        var geometry = new THREE.PlaneGeometry(2, 2); // Kích thước 2x2 (lớn hơn marker)
         var material = new THREE.MeshBasicMaterial({
-            color: 0x00ff00, // Màu xanh lá
+            color: 0x88ccff, // Màu xanh nhạt
             side: THREE.DoubleSide, // Hiển thị cả hai mặt
-            transparent: false, // Không trong suốt
-            opacity: 1.0 // Độ mờ đục 100%
+            transparent: true, // Trong suốt
+            opacity: 0.6 // Độ trong suốt 60%
         });
         
         var plane = new THREE.Mesh(geometry, material);
         
-        // Đặt mặt phẳng nằm ngang (trùng với mặt marker)
-        plane.rotation.x = -Math.PI / 2; // Xoay 90 độ để nằm ngang
+        // Đặt mặt phẳng vuông góc với bề mặt Hiro marker (đứng thẳng)
+        // Không xoay để nó đứng thẳng, vuông góc với marker
+        plane.rotation.x = 0; // Giữ nguyên, không xoay
         
-        // Đặt vị trí ngay trên marker (cao hơn một chút để tránh z-fighting)
-        plane.position.y = 0.01;
+        // Đặt vị trí để phủ lên toàn bộ bề mặt marker
+        plane.position.y = 1; // Nâng lên cao 1 đơn vị
+        plane.position.z = 0; // Đặt ở giữa
         
         arWorldRoot.add(plane);
 
