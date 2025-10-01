@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR.js 3D Shapes Demo</title>
+    <title>AR.js - Mặt Phẳng Xanh</title>
     <style>
         body {
             margin: 0;
@@ -25,30 +25,6 @@
         .header h1 {
             margin: 0;
             font-size: 18px;
-        }
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            z-index: 1;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .controls button {
-            padding: 8px 16px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .controls button:hover {
-            background-color: rgba(0, 100, 200, 0.8);
         }
         #loading {
             position: absolute;
@@ -78,27 +54,17 @@
 </head>
 <body>
     <div class="header">
-        <h1>AR.js 3D Shapes Demo</h1>
-        <p>Thay đổi hình khối 3D bằng các nút bên dưới</p>
+        <h1>AR.js - Mặt Phẳng Xanh</h1>
     </div>
     
     <div class="instructions">
-        Hướng camera vào marker Hiro để xem hình khối 3D
+        Hướng camera vào marker Hiro để xem mặt phẳng màu xanh
         <br>
         <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank" style="color: #4da6ff;">Tải marker Hiro tại đây</a>
     </div>
     
     <div id="loading">
         Đang tải AR.js... Vui lòng cho phép truy cập camera
-    </div>
-    
-    <div class="controls">
-        <button id="btnCube">Hình Lập Phương</button>
-        <button id="btnSphere">Hình Cầu</button>
-        <button id="btnCone">Hình Nón</button>
-        <button id="btnTorus">Hình Xuyến</button>
-        <button id="btnCylinder">Hình Trụ</button>
-        <button id="btnTorusKnot">Hình Xoắn Ốc</button>
     </div>
 
     <!-- three.js library -->
@@ -227,108 +193,29 @@
         });
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		Thêm đối tượng vào scene
+        //		Tạo mặt phẳng màu xanh
         //////////////////////////////////////////////////////////////////////////////////
 
         var arWorldRoot = smoothedRoot;
-        var currentMesh = null;
 
-        // Hàm để tạo hình khối mới
-        function createShape(shapeType) {
-            // Xóa hình cũ nếu có
-            if (currentMesh) {
-                arWorldRoot.remove(currentMesh);
-            }
-            
-            var geometry, material, mesh;
-            
-            switch(shapeType) {
-                case 'cube':
-                    geometry = new THREE.BoxGeometry(1, 1, 1);
-                    material = new THREE.MeshNormalMaterial({
-                        transparent: true,
-                        opacity: 0.8
-                    });
-                    mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 0.5;
-                    break;
-                    
-                case 'sphere':
-                    geometry = new THREE.SphereGeometry(0.5, 32, 32);
-                    material = new THREE.MeshNormalMaterial();
-                    mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 0.5;
-                    break;
-                    
-                case 'cone':
-                    geometry = new THREE.ConeGeometry(0.5, 1, 32);
-                    material = new THREE.MeshNormalMaterial();
-                    mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 0.5;
-                    break;
-                    
-                case 'torus':
-                    geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 100);
-                    material = new THREE.MeshNormalMaterial();
-                    mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 0.5;
-                    mesh.rotation.x = Math.PI / 2;
-                    break;
-                    
-                case 'cylinder':
-                    geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
-                    material = new THREE.MeshNormalMaterial();
-                    mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 0.5;
-                    break;
-                    
-                case 'torusKnot':
-                    geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 100, 16);
-                    material = new THREE.MeshNormalMaterial();
-                    mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 0.5;
-                    break;
-            }
-            
-            arWorldRoot.add(mesh);
-            currentMesh = mesh;
-            
-            // Thêm hiệu ứng xoay
-            onRenderFcts.push(function() {
-                if (mesh) {
-                    mesh.rotation.x += 0.01;
-                    mesh.rotation.y += 0.02;
-                }
-            });
-        }
-
-        // Tạo hình khối mặc định
-        createShape('cube');
-
-        // Xử lý sự kiện cho các nút
-        document.getElementById('btnCube').addEventListener('click', function() {
-            createShape('cube');
+        // Tạo mặt phẳng (thay vì hình lập phương)
+        var geometry = new THREE.PlaneGeometry(1, 1); // Kích thước 1x1
+        var material = new THREE.MeshBasicMaterial({
+            color: 0x00ff00, // Màu xanh lá
+            side: THREE.DoubleSide, // Hiển thị cả hai mặt
+            transparent: false, // Không trong suốt
+            opacity: 1.0 // Độ mờ đục 100%
         });
         
-        document.getElementById('btnSphere').addEventListener('click', function() {
-            createShape('sphere');
-        });
+        var plane = new THREE.Mesh(geometry, material);
         
-        document.getElementById('btnCone').addEventListener('click', function() {
-            createShape('cone');
-        });
+        // Đặt mặt phẳng nằm ngang (trùng với mặt marker)
+        plane.rotation.x = -Math.PI / 2; // Xoay 90 độ để nằm ngang
         
-        document.getElementById('btnTorus').addEventListener('click', function() {
-            createShape('torus');
-        });
+        // Đặt vị trí ngay trên marker (cao hơn một chút để tránh z-fighting)
+        plane.position.y = 0.01;
         
-        document.getElementById('btnCylinder').addEventListener('click', function() {
-            createShape('cylinder');
-        });
-        
-        document.getElementById('btnTorusKnot').addEventListener('click', function() {
-            createShape('torusKnot');
-        });
+        arWorldRoot.add(plane);
 
         //////////////////////////////////////////////////////////////////////////////////
         //		Render lên trang
