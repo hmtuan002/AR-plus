@@ -15,9 +15,6 @@
 
 <script>
 // ---- Configuration: use absolute URLs for camera parameters and pattern file ----
-THREEx = window.THREEx || {};
-THREEx.ArToolkitContext = THREEx.ArToolkitContext || window.ARToolkit && window.ARToolkit.Context ? window.ARToolkit.Context : THREEx.ArToolkitContext;
-
 var CAMERA_PARAM_URL = 'https://jeromeetienne.github.io/AR.js/three.js/data/data/camera_para.dat';
 var PATTERN_URL = 'https://jeromeetienne.github.io/AR.js/three.js/data/data/patt.hiro';
 
@@ -90,12 +87,12 @@ scene.add(markerRoot);
 var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
   type: 'pattern',
   patternUrl: PATTERN_URL,
-  // change size if you want a different scale
 });
 
-// Smoothed controls (optional) — included in many AR.js examples; if not available it's harmless
+// Smoothed controls (optional)
+var smoothedRoot = markerRoot;
 if(THREEx.ArSmoothedControls){
-  var smoothedRoot = new THREE.Group();
+  smoothedRoot = new THREE.Group();
   scene.add(smoothedRoot);
   var smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
     lerpPosition: 0.4,
@@ -103,9 +100,6 @@ if(THREEx.ArSmoothedControls){
     lerpScale: 1,
   });
   onRenderFcts.push(function(delta){ smoothedControls.update(markerRoot); });
-} else {
-  // fallback: use markerRoot directly
-  var smoothedRoot = markerRoot;
 }
 
 var arWorldRoot = smoothedRoot;
@@ -113,52 +107,45 @@ var arWorldRoot = smoothedRoot;
 ////////////////////////////////////////////////////////////////////////////////
 // Create ground + grass (non-transparent green ground and many small triangular blades)
 ////////////////////////////////////////////////////////////////////////////////
-// Ground: a square plane that sits flush on the marker (top surface at y=0)
-var groundSize = 1.6; // meters relative to marker size
+// Ground plane
+var groundSize = 1.6;
 var groundGeo = new THREE.PlaneGeometry(groundSize, groundSize);
 var groundMat = new THREE.MeshLambertMaterial({color: 0x1b7a1b, side: THREE.DoubleSide});
 var groundMesh = new THREE.Mesh(groundGeo, groundMat);
-groundMesh.rotation.x = -Math.PI/2; // make it horizontal (XZ plane)
-groundMesh.position.y = 0; // top surface at marker plane
+groundMesh.rotation.x = -Math.PI/2;
+groundMesh.position.y = 0;
 arWorldRoot.add(groundMesh);
 
-// Slightly raise the ground's top so blades originate above marker surface (prevent z-fighting)
 var grassBaseY = 0.001;
 
-// Grass blade prototype geometry (triangular cone -> ConeGeometry with radialSegments=3)
 function createGrassBlade(){
-  var height = 0.08 + Math.random()*0.12; // 8cm-20cm (relative scale)
-  var radius = 0.006 + Math.random()*0.01; // thin base
+  var height = 0.08 + Math.random()*0.12;
+  var radius = 0.006 + Math.random()*0.01;
   var geo = new THREE.ConeGeometry(radius, height, 3);
-  // shift geometry so base is at y=0
   geo.translate(0, height/2, 0);
   var mat = new THREE.MeshLambertMaterial({color: 0x2aa02a});
   var mesh = new THREE.Mesh(geo, mat);
   return mesh;
 }
 
-// Scatter many blades on the ground
 var bladesCount = 260;
 for(var i=0;i<bladesCount;i++){
   var blade = createGrassBlade();
-  // random position within ground square (avoid edges a little)
   var margin = 0.02;
   var x = (Math.random()* (groundSize - margin*2) - (groundSize/2 - margin));
   var z = (Math.random()* (groundSize - margin*2) - (groundSize/2 - margin));
   blade.position.x = x;
   blade.position.z = z;
   blade.position.y = grassBaseY;
-  // slight random tilt
   blade.rotation.x = (Math.random()-0.5)*0.25;
   blade.rotation.z = (Math.random()-0.5)*0.4;
-  // small scale variation
   var s = 0.8 + Math.random()*0.6;
   blade.scale.set(s,s,s);
   arWorldRoot.add(blade);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Optional: add a subtle rotating decorative object so you can see animation
+// Decorative object (torus knot)
 ////////////////////////////////////////////////////////////////////////////////
 var decoGeo = new THREE.TorusKnotGeometry(0.18,0.05,64,16);
 var decoMat = new THREE.MeshNormalMaterial();
@@ -179,9 +166,6 @@ requestAnimationFrame(function animate(nowMsec){
   onRenderFcts.forEach(function(onRenderFct){ onRenderFct(deltaMsec/1000, nowMsec/1000); });
   renderer.render(scene, camera);
 });
-
-// Helpful note: show a simple onscreen FPS using Stats if you want (uncomment below)
-// var script = document.createElement('script'); script.src = 'https://jeromeetienne.github.io/AR.js/three.js/examples/vendor/three.js/examples/js/libs/stats.min.js'; document.body.appendChild(script);
 </script>
 </body>
 </html>
