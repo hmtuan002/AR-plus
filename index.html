@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR.js Mobile Performance Demo</title>
+    <title>AR.js 3D Shapes Demo</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            font-family: Monospace;
+            font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
         .header {
@@ -19,17 +19,53 @@
             z-index: 1;
             color: #333;
             text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+            padding: 10px;
+            box-sizing: border-box;
         }
-        .header a {
-            color: #0066cc;
-            text-decoration: none;
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
         }
-        .header a:hover {
-            text-decoration: underline;
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 1;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .controls button {
+            padding: 8px 16px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background-color: rgba(0, 100, 200, 0.8);
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            z-index: 10;
+            background-color: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
         }
         .instructions {
             position: absolute;
-            bottom: 20px;
+            top: 60px;
             width: 100%;
             text-align: center;
             color: white;
@@ -38,46 +74,32 @@
             box-sizing: border-box;
             z-index: 1;
         }
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 24px;
-            text-align: center;
-            z-index: 10;
-            background-color: rgba(0,0,0,0.7);
-            padding: 20px;
-            border-radius: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <a href="https://github.com/jeromeetienne/AR.js/" target="_blank">AR.js</a> - three.js mobile performance
-        <br/>
-        Contact me any time at <a href='https://twitter.com/jerome_etienne' target='_blank'>@jerome_etienne</a>
-    </div>
-    
-    <div id="loading">
-        Loading AR.js... Please allow camera access when prompted.
+        <h1>AR.js 3D Shapes Demo</h1>
+        <p>Thay đổi hình khối 3D bằng các nút bên dưới</p>
     </div>
     
     <div class="instructions">
-        Point your camera at a Hiro marker to see the 3D objects.
+        Hướng camera vào marker Hiro để xem hình khối 3D
         <br>
-        <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank">Download Hiro marker here</a>
+        <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank" style="color: #4da6ff;">Tải marker Hiro tại đây</a>
     </div>
-
-    <script>
-        // Hide loading message when page is ready
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('loading').style.display = 'none';
-            }, 2000);
-        });
-    </script>
+    
+    <div id="loading">
+        Đang tải AR.js... Vui lòng cho phép truy cập camera
+    </div>
+    
+    <div class="controls">
+        <button id="btnCube">Hình Lập Phương</button>
+        <button id="btnSphere">Hình Cầu</button>
+        <button id="btnCone">Hình Nón</button>
+        <button id="btnTorus">Hình Xuyến</button>
+        <button id="btnCylinder">Hình Trụ</button>
+        <button id="btnTorusKnot">Hình Xoắn Ốc</button>
+    </div>
 
     <!-- three.js library -->
     <script src='https://cdn.jsdelivr.net/npm/three@0.115.0/build/three.min.js'></script>
@@ -87,14 +109,21 @@
     <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/AR.js@master/three.js/build/ar.js"></script>
     
     <script>
-        // Set base URL for AR.js resources
+        // Ẩn thông báo tải khi trang đã sẵn sàng
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loading').style.display = 'none';
+            }, 2000);
+        });
+
+        // Thiết lập base URL cho tài nguyên AR.js
         THREEx.ArToolkitContext.baseURL = 'https://jeromeetienne.github.io/AR.js/three.js/';
         
         //////////////////////////////////////////////////////////////////////////////////
-        //		Init
+        //		Khởi tạo
         //////////////////////////////////////////////////////////////////////////////////
 
-        // init renderer
+        // Khởi tạo renderer
         var renderer = new THREE.WebGLRenderer({
             antialias: false,
             alpha: true
@@ -106,26 +135,26 @@
         renderer.domElement.style.left = '0px';
         document.body.appendChild(renderer.domElement);
 
-        // array of functions for the rendering loop
+        // Mảng chứa các hàm cho vòng lặp render
         var onRenderFcts = [];
 
-        // init scene and camera
+        // Khởi tạo scene và camera
         var scene = new THREE.Scene();
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		Initialize a basic camera
+        //		Khởi tạo camera cơ bản
         //////////////////////////////////////////////////////////////////////////////////
 
-        // Create a camera
+        // Tạo camera
         var camera = new THREE.Camera();
         scene.add(camera);
 
         ////////////////////////////////////////////////////////////////////////////////
-        //          handle arToolkitSource
+        //          Xử lý arToolkitSource
         ////////////////////////////////////////////////////////////////////////////////
 
         var arToolkitSource = new THREEx.ArToolkitSource({
-            // to read from the webcam
+            // Đọc từ webcam
             sourceType: 'webcam',
         });
 
@@ -133,7 +162,7 @@
             onResize();
         });
 
-        // handle resize
+        // Xử lý sự kiện thay đổi kích thước
         window.addEventListener('resize', function() {
             onResize();
         });
@@ -147,10 +176,10 @@
         }
 
         ////////////////////////////////////////////////////////////////////////////////
-        //          initialize arToolkitContext
+        //          Khởi tạo arToolkitContext
         ////////////////////////////////////////////////////////////////////////////////
 
-        // create atToolkitContext
+        // Tạo arToolkitContext
         var arToolkitContext = new THREEx.ArToolkitContext({
             cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
             detectionMode: 'mono',
@@ -159,21 +188,20 @@
             canvasHeight: 60 * 3,
         });
 
-        // initialize it
+        // Khởi tạo
         arToolkitContext.init(function onCompleted() {
-            // copy projection matrix to camera
+            // Sao chép ma trận projection vào camera
             camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
         });
 
-        // update artoolkit on every frame
+        // Cập nhật artoolkit trên mỗi frame
         onRenderFcts.push(function() {
             if (arToolkitSource.ready === false) return;
-
             arToolkitContext.update(arToolkitSource.domElement);
         });
 
         ////////////////////////////////////////////////////////////////////////////////
-        //          Create a ArMarkerControls
+        //          Tạo ArMarkerControls
         ////////////////////////////////////////////////////////////////////////////////
 
         var markerRoot = new THREE.Group();
@@ -184,7 +212,7 @@
             patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
         });
 
-        // build a smoothedControls
+        // Tạo smoothedControls
         var smoothedRoot = new THREE.Group();
         scene.add(smoothedRoot);
         
@@ -199,56 +227,132 @@
         });
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		add an object in the scene
+        //		Thêm đối tượng vào scene
         //////////////////////////////////////////////////////////////////////////////////
 
         var arWorldRoot = smoothedRoot;
+        var currentMesh = null;
 
-        // add a transparent cube
-        var geometry = new THREE.BoxGeometry(1, 1, 1);
-        var material = new THREE.MeshNormalMaterial({
-            transparent: true,
-            opacity: 0.5,
-            side: THREE.DoubleSide
+        // Hàm để tạo hình khối mới
+        function createShape(shapeType) {
+            // Xóa hình cũ nếu có
+            if (currentMesh) {
+                arWorldRoot.remove(currentMesh);
+            }
+            
+            var geometry, material, mesh;
+            
+            switch(shapeType) {
+                case 'cube':
+                    geometry = new THREE.BoxGeometry(1, 1, 1);
+                    material = new THREE.MeshNormalMaterial({
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 0.5;
+                    break;
+                    
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry(0.5, 32, 32);
+                    material = new THREE.MeshNormalMaterial();
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 0.5;
+                    break;
+                    
+                case 'cone':
+                    geometry = new THREE.ConeGeometry(0.5, 1, 32);
+                    material = new THREE.MeshNormalMaterial();
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 0.5;
+                    break;
+                    
+                case 'torus':
+                    geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 100);
+                    material = new THREE.MeshNormalMaterial();
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 0.5;
+                    mesh.rotation.x = Math.PI / 2;
+                    break;
+                    
+                case 'cylinder':
+                    geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 32);
+                    material = new THREE.MeshNormalMaterial();
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 0.5;
+                    break;
+                    
+                case 'torusKnot':
+                    geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 100, 16);
+                    material = new THREE.MeshNormalMaterial();
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 0.5;
+                    break;
+            }
+            
+            arWorldRoot.add(mesh);
+            currentMesh = mesh;
+            
+            // Thêm hiệu ứng xoay
+            onRenderFcts.push(function() {
+                if (mesh) {
+                    mesh.rotation.x += 0.01;
+                    mesh.rotation.y += 0.02;
+                }
+            });
+        }
+
+        // Tạo hình khối mặc định
+        createShape('cube');
+
+        // Xử lý sự kiện cho các nút
+        document.getElementById('btnCube').addEventListener('click', function() {
+            createShape('cube');
         });
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.position.y = geometry.parameters.height / 2;
-        arWorldRoot.add(mesh);
-
-        // add a rotating torus knot
-        var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-        var material = new THREE.MeshNormalMaterial();
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.position.y = 0.5;
-        arWorldRoot.add(mesh);
-
-        onRenderFcts.push(function() {
-            mesh.rotation.x += 0.1;
+        
+        document.getElementById('btnSphere').addEventListener('click', function() {
+            createShape('sphere');
+        });
+        
+        document.getElementById('btnCone').addEventListener('click', function() {
+            createShape('cone');
+        });
+        
+        document.getElementById('btnTorus').addEventListener('click', function() {
+            createShape('torus');
+        });
+        
+        document.getElementById('btnCylinder').addEventListener('click', function() {
+            createShape('cylinder');
+        });
+        
+        document.getElementById('btnTorusKnot').addEventListener('click', function() {
+            createShape('torusKnot');
         });
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		render the whole thing on the page
+        //		Render lên trang
         //////////////////////////////////////////////////////////////////////////////////
         
         var stats = new Stats();
         document.body.appendChild(stats.dom);
         
-        // render the scene
+        // Render scene
         onRenderFcts.push(function() {
             renderer.render(scene, camera);
             stats.update();
         });
 
-        // run the rendering loop
+        // Chạy vòng lặp render
         var lastTimeMsec = null;
         requestAnimationFrame(function animate(nowMsec) {
-            // keep looping
+            // Tiếp tục lặp
             requestAnimationFrame(animate);
-            // measure time
+            // Đo thời gian
             lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
             var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
             lastTimeMsec = nowMsec;
-            // call each update function
+            // Gọi mỗi hàm update
             onRenderFcts.forEach(function(onRenderFct) {
                 onRenderFct(deltaMsec / 1000, nowMsec / 1000);
             });
