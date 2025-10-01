@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR.js - Mặt Phẳng Xanh Nhạt</title>
+    <title>AR.js - Lớp Phủ Xanh Toàn Màn Hình</title>
     <style>
         body {
             margin: 0;
@@ -50,15 +50,25 @@
             box-sizing: border-box;
             z-index: 1;
         }
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(135, 206, 250, 0.6); /* Màu xanh nhạt trong suốt 60% */
+            z-index: 2;
+            pointer-events: none; /* Cho phép tương tác với các phần tử bên dưới */
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>AR.js - Mặt Phẳng Xanh Nhạt Trong Suốt</h1>
+        <h1>AR.js - Lớp Phủ Xanh Toàn Màn Hình</h1>
     </div>
     
     <div class="instructions">
-        Hướng camera vào marker Hiro để xem mặt phẳng xanh nhạt trong suốt
+        Lớp phủ xanh sẽ hiển thị toàn màn hình bất kể có Hiro marker hay không
         <br>
         <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank" style="color: #4da6ff;">Tải marker Hiro tại đây</a>
     </div>
@@ -66,6 +76,9 @@
     <div id="loading">
         Đang tải AR.js... Vui lòng cho phép truy cập camera
     </div>
+
+    <!-- Lớp phủ xanh toàn màn hình -->
+    <div class="fullscreen-overlay"></div>
 
     <!-- three.js library -->
     <script src='https://cdn.jsdelivr.net/npm/three@0.115.0/build/three.min.js'></script>
@@ -193,31 +206,31 @@
         });
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		Tạo mặt phẳng xanh nhạt trong suốt
+        //		Tạo mặt phẳng xanh toàn màn hình trong Three.js (dự phòng)
         //////////////////////////////////////////////////////////////////////////////////
 
         var arWorldRoot = smoothedRoot;
 
-        // Tạo mặt phẳng lớn hơn để phủ toàn bộ bề mặt
-        var geometry = new THREE.PlaneGeometry(2, 2); // Kích thước 2x2 (lớn hơn marker)
+        // Tạo mặt phẳng rất lớn để phủ toàn bộ tầm nhìn camera
+        var geometry = new THREE.PlaneGeometry(10, 10); // Kích thước rất lớn
         var material = new THREE.MeshBasicMaterial({
-            color: 0x88ccff, // Màu xanh nhạt
-            side: THREE.DoubleSide, // Hiển thị cả hai mặt
-            transparent: true, // Trong suốt
-            opacity: 0.6 // Độ trong suốt 60%
+            color: 0x87cefa, // Màu xanh nhạt
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.6
         });
         
         var plane = new THREE.Mesh(geometry, material);
         
-        // Đặt mặt phẳng vuông góc với bề mặt Hiro marker (đứng thẳng)
-        // Không xoay để nó đứng thẳng, vuông góc với marker
-        plane.rotation.x = 0; // Giữ nguyên, không xoay
+        // Đặt mặt phẳng thẳng đứng trước camera
+        plane.rotation.x = 0; // Đứng thẳng
         
-        // Đặt vị trí để phủ lên toàn bộ bề mặt marker
-        plane.position.y = 1; // Nâng lên cao 1 đơn vị
-        plane.position.z = 0; // Đặt ở giữa
+        // Đặt vị trí cách camera một khoảng
+        plane.position.z = -2; // Phía trước camera
+        plane.position.y = 0;
         
-        arWorldRoot.add(plane);
+        // Thêm vào scene chính (không phải arWorldRoot) để luôn hiển thị
+        scene.add(plane);
 
         //////////////////////////////////////////////////////////////////////////////////
         //		Render lên trang
