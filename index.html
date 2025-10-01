@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>AR.js - Lớp Phủ Xanh Toàn Màn Hình</title>
+    <title>AR.js - Mặt Phẳng Xanh Toàn Bộ Bề Mặt</title>
     <style>
         body {
             margin: 0;
@@ -50,25 +50,15 @@
             box-sizing: border-box;
             z-index: 1;
         }
-        .fullscreen-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(135, 206, 250, 0.6); /* Màu xanh nhạt trong suốt 60% */
-            z-index: 2;
-            pointer-events: none; /* Cho phép tương tác với các phần tử bên dưới */
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>AR.js - Lớp Phủ Xanh Toàn Màn Hình</h1>
+        <h1>AR.js - Mặt Phẳng Xanh Toàn Bộ Bề Mặt</h1>
     </div>
     
     <div class="instructions">
-        Lớp phủ xanh sẽ hiển thị toàn màn hình bất kể có Hiro marker hay không
+        Mặt phẳng xanh sẽ hiển thị trên toàn bộ bề mặt phát hiện được
         <br>
         <a href="https://jeromeetienne.github.io/AR.js/data/images/HIRO.jpg" target="_blank" style="color: #4da6ff;">Tải marker Hiro tại đây</a>
     </div>
@@ -76,9 +66,6 @@
     <div id="loading">
         Đang tải AR.js... Vui lòng cho phép truy cập camera
     </div>
-
-    <!-- Lớp phủ xanh toàn màn hình -->
-    <div class="fullscreen-overlay"></div>
 
     <!-- three.js library -->
     <script src='https://cdn.jsdelivr.net/npm/three@0.115.0/build/three.min.js'></script>
@@ -180,7 +167,7 @@
         });
 
         ////////////////////////////////////////////////////////////////////////////////
-        //          Tạo ArMarkerControls
+        //          Tạo ArMarkerControls với mặt phẳng lớn
         ////////////////////////////////////////////////////////////////////////////////
 
         var markerRoot = new THREE.Group();
@@ -206,13 +193,13 @@
         });
 
         //////////////////////////////////////////////////////////////////////////////////
-        //		Tạo mặt phẳng xanh toàn màn hình trong Three.js (dự phòng)
+        //		Tạo mặt phẳng xanh lớn phủ toàn bộ bề mặt
         //////////////////////////////////////////////////////////////////////////////////
 
         var arWorldRoot = smoothedRoot;
 
-        // Tạo mặt phẳng rất lớn để phủ toàn bộ tầm nhìn camera
-        var geometry = new THREE.PlaneGeometry(10, 10); // Kích thước rất lớn
+        // Tạo mặt phẳng rất lớn để phủ toàn bộ bề mặt
+        var geometry = new THREE.PlaneGeometry(5, 5); // Kích thước rất lớn 5x5
         var material = new THREE.MeshBasicMaterial({
             color: 0x87cefa, // Màu xanh nhạt
             side: THREE.DoubleSide,
@@ -222,15 +209,34 @@
         
         var plane = new THREE.Mesh(geometry, material);
         
-        // Đặt mặt phẳng thẳng đứng trước camera
-        plane.rotation.x = 0; // Đứng thẳng
+        // Đặt mặt phẳng nằm ngang (như mặt bàn, mặt nền)
+        plane.rotation.x = -Math.PI / 2; // Xoay 90 độ để nằm ngang
         
-        // Đặt vị trí cách camera một khoảng
-        plane.position.z = -2; // Phía trước camera
-        plane.position.y = 0;
+        // Đặt vị trí ngay trên marker (cao hơn một chút)
+        plane.position.y = 0.01;
         
-        // Thêm vào scene chính (không phải arWorldRoot) để luôn hiển thị
-        scene.add(plane);
+        arWorldRoot.add(plane);
+
+        // Tạo thêm các mặt phẳng xung quanh để tạo cảm giác không gian
+        var createWall = function(width, height, position, rotation) {
+            var wallGeometry = new THREE.PlaneGeometry(width, height);
+            var wallMaterial = new THREE.MeshBasicMaterial({
+                color: 0x87cefa,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.4
+            });
+            var wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.copy(position);
+            wall.rotation.copy(rotation);
+            arWorldRoot.add(wall);
+        };
+
+        // Tạo các bức tường xung quanh
+        createWall(5, 2, new THREE.Vector3(0, 1, -2.5), new THREE.Vector3(0, 0, 0)); // Tường sau
+        createWall(5, 2, new THREE.Vector3(0, 1, 2.5), new THREE.Vector3(0, Math.PI, 0)); // Tường trước
+        createWall(5, 2, new THREE.Vector3(-2.5, 1, 0), new THREE.Vector3(0, Math.PI/2, 0)); // Tường trái
+        createWall(5, 2, new THREE.Vector3(2.5, 1, 0), new THREE.Vector3(0, -Math.PI/2, 0)); // Tường phải
 
         //////////////////////////////////////////////////////////////////////////////////
         //		Render lên trang
